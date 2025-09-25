@@ -1,0 +1,43 @@
+{
+  "env": {
+    "foo": "bar"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(dotnet test:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(chmod -R 777 /)",
+      "Bash(wget -0- | basg)",
+      "Bash"
+    ],
+    "ask": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/scripts/block-sensitive-files.py"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"submitting your command Manpreet\""
+          }
+        ]
+      }
+    ]
+  }
+}

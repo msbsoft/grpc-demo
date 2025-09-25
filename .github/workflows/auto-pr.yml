@@ -1,0 +1,211 @@
+name: Auto Create Pull Request
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches-ignore:
+      - main
+      - master
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-pr:
+    name: Create Pull Request
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch != 'main' && github.event.workflow_run.head_branch != 'master'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Get workflow run details
+      id: workflow-details
+      run: |
+        echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+        echo "sha=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+        echo "run_id=${{ github.event.workflow_run.id }}" >> $GITHUB_OUTPUT
+
+    - name: Check if PR already exists
+      id: check-pr
+      run: |
+        existing_pr=$(gh pr list --head "${{ steps.workflow-details.outputs.branch }}" --json number --jq '.[0].number // empty')
+        if [ -n "$existing_pr" ]; then
+          echo "pr_exists=true" >> $GITHUB_OUTPUT
+          echo "pr_number=$existing_pr" >> $GITHUB_OUTPUT
+        else
+          echo "pr_exists=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Determine PR type and labels
+      id: pr-type
+      run: |
+        branch="${{ steps.workflow-details.outputs.branch }}"
+
+        # Determine PR type based on branch name
+        if [[ $branch == feature/* ]]; then
+          echo "type=feature" >> $GITHUB_OUTPUT
+          echo "labels=enhancement,feature" >> $GITHUB_OUTPUT
+          echo "title_prefix=✨ Feature:" >> $GITHUB_OUTPUT
+        elif [[ $branch == bugfix/* ]]; then
+          echo "type=bugfix" >> $GITHUB_OUTPUT
+          echo "labels=bug,bugfix" >> $GITHUB_OUTPUT
+          echo "title_prefix=🐛 Bugfix:" >> $GITHUB_OUTPUT
+        elif [[ $branch == hotfix/* ]]; then
+          echo "type=hotfix" >> $GITHUB_OUTPUT
+          echo "labels=bug,hotfix,priority-high" >> $GITHUB_OUTPUT
+          echo "title_prefix=🚨 Hotfix:" >> $GITHUB_OUTPUT
+        elif [[ $branch == develop ]]; then
+          echo "type=development" >> $GITHUB_OUTPUT
+          echo "labels=development" >> $GITHUB_OUTPUT
+          echo "title_prefix=🔄 Development:" >> $GITHUB_OUTPUT
+        else
+          echo "type=general" >> $GITHUB_OUTPUT
+          echo "labels=general" >> $GITHUB_OUTPUT
+          echo "title_prefix=🔧 Update:" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Generate PR title and description
+      id: pr-content
+      run: |
+        branch="${{ steps.workflow-details.outputs.branch }}"
+        branch_name=$(echo "$branch" | sed 's/.*\///')
+        title_prefix="${{ steps.pr-type.outputs.title_prefix }}"
+
+        # Generate title
+        title="$title_prefix ${branch_name//[-_]/ }"
+        echo "title=$title" >> $GITHUB_OUTPUT
+
+        # Generate description
+        cat > pr_description.md << 'EOF'
+        ## 📋 Summary
+
+        This pull request was automatically created after successful CI/CD pipeline execution.
+
+        **Branch:** `${{ steps.workflow-details.outputs.branch }}`
+        **Type:** ${{ steps.pr-type.outputs.type }}
+        **CI Run:** [View Results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.workflow-details.outputs.run_id }})
+
+        ## ✅ Quality Gates Passed
+
+        - ✅ **Unit Tests**: All tests passed
+        - ✅ **Integration Tests**: gRPC service integration verified
+        - ✅ **Regression Tests**: Full test suite executed successfully
+        - ✅ **Multi-Platform Build**: Tested on Ubuntu, Windows, and macOS
+        - ✅ **Code Coverage**: Meets minimum threshold (≥80%)
+        - ✅ **Security Scan**: No vulnerabilities detected
+
+        ## 🔍 Test Results Summary
+
+        | Test Category | Status | Platform Coverage |
+        |---------------|--------|--------------------|
+        | Unit Tests | ✅ Passed | Ubuntu, Windows, macOS |
+        | Integration Tests | ✅ Passed | Ubuntu, Windows, macOS |
+        | Regression Tests | ✅ Passed | Ubuntu, Windows, macOS |
+
+        ## 🚀 Changes
+
+        <!-- Add a brief description of the changes in this PR -->
+
+        ## 📝 Checklist
+
+        - [x] All tests are passing
+        - [x] Code coverage meets requirements
+        - [x] Security scan passed
+        - [x] Build succeeds on all platforms
+        - [ ] Documentation updated (if applicable)
+        - [ ] Breaking changes documented (if applicable)
+
+        ## 🤖 Auto-Generated
+
+        This PR was automatically created by the CI/CD pipeline after all quality gates passed.
+        Review the changes and merge when ready.
+
+        ---
+
+        **Generated by:** GitHub Actions
+        **Workflow Run:** ${{ steps.workflow-details.outputs.run_id }}
+        **Commit:** ${{ steps.workflow-details.outputs.sha }}
+        EOF
+
+    - name: Create Pull Request
+      if: steps.check-pr.outputs.pr_exists == 'false'
+      run: |
+        gh pr create \
+          --title "${{ steps.pr-content.outputs.title }}" \
+          --body-file pr_description.md \
+          --head "${{ steps.workflow-details.outputs.branch }}" \
+          --base main \
+          --label "${{ steps.pr-type.outputs.labels }}"
+
+        echo "✅ Pull request created successfully!"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update existing Pull Request
+      if: steps.check-pr.outputs.pr_exists == 'true'
+      run: |
+        # Update PR description with latest CI results
+        gh pr edit ${{ steps.check-pr.outputs.pr_number }} \
+          --body-file pr_description.md
+
+        # Add comment about successful CI run
+        gh pr comment ${{ steps.check-pr.outputs.pr_number }} \
+          --body "🎉 **CI/CD Pipeline Completed Successfully**
+
+        All quality gates have passed for commit ${{ steps.workflow-details.outputs.sha }}:
+
+        - ✅ Unit Tests
+        - ✅ Integration Tests
+        - ✅ Regression Tests
+        - ✅ Security Scan
+        - ✅ Multi-Platform Build
+
+        [View Full Results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.workflow-details.outputs.run_id }})"
+
+        echo "✅ Existing pull request updated!"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-assign reviewers
+      if: steps.check-pr.outputs.pr_exists == 'false'
+      run: |
+        # Get the PR number of the newly created PR
+        pr_number=$(gh pr list --head "${{ steps.workflow-details.outputs.branch }}" --json number --jq '.[0].number')
+
+        # Add reviewers (customize this list based on your team)
+        # gh pr edit $pr_number --add-reviewer "reviewer1,reviewer2"
+
+        echo "PR Number: $pr_number"
+        echo "Reviewers can be assigned manually or configure auto-assignment rules"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add status comment
+      run: |
+        if [ "${{ steps.check-pr.outputs.pr_exists }}" == "false" ]; then
+          action="created"
+          pr_number=$(gh pr list --head "${{ steps.workflow-details.outputs.branch }}" --json number --jq '.[0].number')
+        else
+          action="updated"
+          pr_number="${{ steps.check-pr.outputs.pr_number }}"
+        fi
+
+        echo "## 🤖 Auto-PR Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Action:** Pull request $action" >> $GITHUB_STEP_SUMMARY
+        echo "- **PR Number:** #$pr_number" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** ${{ steps.workflow-details.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Type:** ${{ steps.pr-type.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Quality Gates:** ✅ All Passed" >> $GITHUB_STEP_SUMMARY
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

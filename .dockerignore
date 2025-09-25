@@ -1,0 +1,77 @@
+# Git files and directories
+.git
+.gitignore
+.gitattributes
+
+# Build and publish output directories
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# Test results and coverage
+**/*TestResults*/
+**/TestResults/
+**/*.trx
+**/coverage/
+**/*.coverage
+**/*.coveragexml
+
+# Visual Studio and VS Code files
+.vs/
+.vscode/
+**/*.user
+**/*.suo
+**/*.userosscache
+**/*.sln.docstates
+
+# IDE temp files
+**/*.tmp
+**/*.temp
+**/*.swp
+**/*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation and README files (not needed in container)
+*.md
+!CLAUDE.md
+
+# Package manager directories
+**/node_modules/
+**/packages/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+**/*.log
+**/logs/
+
+# NuGet packages (will be restored during build)
+*.nupkg
+*.snupkg
+
+# Docker files (avoid recursive copying)
+Dockerfile*
+.dockerignore
+docker-compose*
+
+# CI/CD and deployment files
+.github/
+.azure/
+*.yml
+*.yaml
+!docker-compose.yml
