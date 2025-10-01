@@ -52,8 +52,8 @@ jobs:
         dotnet test ConsoleApp1.Tests --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Unit
         dotnet test GrpcService1.Tests --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Integration
 
-    - name: Run integration tests
-      run: dotnet test GrpcService1.Tests --configuration Release --no-build --verbosity normal --filter "Category=Integration" --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Integration
+    # - name: Run integration tests
+    #   run: dotnet test GrpcService1.Tests --configuration Release --no-build --verbosity normal --filter "Category=Integration" --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Integration
 
     - name: Run regression tests (full suite)
       run: dotnet test --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Regression
@@ -162,7 +162,7 @@ jobs:
         echo "| Criteria | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| Unit Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-        echo "| Integration Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        # echo "| Integration Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Regression Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Security Scan | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Windows Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
