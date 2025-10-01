@@ -7,7 +7,13 @@
       "Bash(mkdir:*)",
       "Bash(dotnet test:*)",
       "WebFetch(domain:github.com)",
-      "WebSearch"
+      "WebSearch",
+      "SlashCommand(/list-repos)",
+      "WebFetch(domain:guiltychef.com)",
+      "Read(//c/msdev/**)",
+      "Bash(python:*)",
+      "Bash(start http://localhost:8000)",
+      "Bash(curl:*)"
     ],
     "deny": [
       "Bash(chmod -R 777 /)",

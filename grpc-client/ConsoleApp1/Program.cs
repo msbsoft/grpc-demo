@@ -4,6 +4,7 @@
 
 using Grpc.Net.Client;
 using ConsoleApp1;
+using GrpcService1;
 
 var orders = Enumerable.Range(1, 5)
   .Select(i => OrderBuilder.Create()
@@ -16,7 +17,7 @@ var orders = Enumerable.Range(1, 5)
         .Zip("12345"))
     .Build())
   .ToList();
-Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(orders, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+//Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(orders, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
 
 Order order = OrderBuilder.Create()
     .Id(1)
@@ -27,7 +28,7 @@ Order order = OrderBuilder.Create()
         .State("CA")
         .Zip("12345"))
     .Build();
-Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(order, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+//Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(order, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
 
 
 // Use Docker service name for containerized environment, fallback to localhost for development

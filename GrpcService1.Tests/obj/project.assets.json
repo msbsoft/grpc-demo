@@ -7893,11 +7893,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\msdev\\grpc-demo\\GrpcService1.Tests\\GrpcService1.Tests.csproj",
+      "projectUniqueName": "C:\\msdev\\grpc-demo\\GrpcService1.Tests\\GrpcService1.Tests.csproj",
       "projectName": "GrpcService1.Tests",
-      "projectPath": "c:\\msdev\\grpc-demo\\GrpcService1.Tests\\GrpcService1.Tests.csproj",
+      "projectPath": "C:\\msdev\\grpc-demo\\GrpcService1.Tests\\GrpcService1.Tests.csproj",
       "packagesPath": "C:\\Users\\MSBKindle\\.nuget\\packages\\",
-      "outputPath": "c:\\msdev\\grpc-demo\\GrpcService1.Tests\\obj\\",
+      "outputPath": "C:\\msdev\\grpc-demo\\GrpcService1.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\MSBKindle\\AppData\\Roaming\\NuGet\\NuGet.Config"
