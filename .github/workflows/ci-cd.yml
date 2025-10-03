@@ -144,19 +144,27 @@ jobs:
         path: ./TestResults
 
     - name: Check quality gate
+      shell: pwsh
       run: |
-        echo "🔍 Evaluating quality gate criteria..."
+        Write-Host "🔍 Evaluating quality gate criteria..."
 
         # Check if any test files exist and contain failures
-        if find ./TestResults -name "*.trx" -exec grep -l "outcome=\"Failed\"" {} \; | grep -q .; then
-          echo "❌ Quality Gate FAILED: One or more tests failed"
-          exit 1
-        fi
+        $failedTests = Get-ChildItem -Path ./TestResults -Filter "*.trx" -Recurse | ForEach-Object {
+          $content = Get-Content $_.FullName -Raw
+          if ($content -match 'outcome="Failed"') {
+            $_.Name
+          }
+        }
 
-        echo "✅ Quality Gate PASSED: All criteria met"
-        echo "- ✅ All tests passed"
-        echo "- ✅ Security scan completed"
-        echo "- ✅ Build succeeded on all platforms"
+        if ($failedTests) {
+          Write-Host "❌ Quality Gate FAILED: One or more tests failed"
+          Write-Host "Failed test files: $($failedTests -join ', ')"
+          exit 1
+        }
+
+        Write-Host "✅ Quality Gate PASSED: All criteria met"
+        Write-Host "- ✅ All tests passed"
+        Write-Host "- ✅ Build succeeded on Windows"
 
     - name: Create quality gate summary
       run: |
