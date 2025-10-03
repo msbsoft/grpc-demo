@@ -13,7 +13,9 @@
       "Read(//c/msdev/**)",
       "Bash(python:*)",
       "Bash(start http://localhost:8000)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:cli.github.com)",
+      "SlashCommand(/list-repos:*)"
     ],
     "deny": [
       "Bash(chmod -R 777 /)",

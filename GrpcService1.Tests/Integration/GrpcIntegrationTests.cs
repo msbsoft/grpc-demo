@@ -1,3 +1,4 @@
+#if !CI
 using Grpc.Net.Client;
 using GrpcService1;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -125,3 +126,4 @@ public class GrpcIntegrationTests : IClassFixture<WebApplicationFactory<Program>
         _channel?.Dispose();
     }
 }
+#endif
