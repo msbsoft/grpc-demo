@@ -45,18 +45,18 @@ jobs:
       run: dotnet restore
 
     - name: Build solution
-      run: dotnet build --configuration Release --no-restore --verbosity normal
+      run: dotnet build --configuration Release --no-restore --verbosity normal /p:DefineConstants=CI
 
     - name: Run unit tests
       run: |
         dotnet test ConsoleApp1.Tests --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Unit
-        dotnet test GrpcService1.Tests --configuration Release --no-build --verbosity normal --filter "FullyQualifiedName!~Integration" --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Unit
+        dotnet test GrpcService1.Tests --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Unit
 
     # - name: Run integration tests
     #   run: dotnet test GrpcService1.Tests --configuration Release --no-build --verbosity normal --filter "Category=Integration" --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Integration
 
     - name: Run regression tests (full suite)
-      run: dotnet test --configuration Release --no-build --verbosity normal --filter "FullyQualifiedName!~Integration" --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Regression
+      run: dotnet test --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --results-directory ./TestResults/Regression
 
     - name: Generate code coverage report
       if: matrix.os == 'windows-latest'
