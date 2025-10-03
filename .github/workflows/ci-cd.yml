@@ -149,14 +149,21 @@ jobs:
         Write-Host "🔍 Evaluating quality gate criteria..."
 
         # Check if any test files exist and contain failures
-        $failedTests = Get-ChildItem -Path ./TestResults -Filter "*.trx" -Recurse | ForEach-Object {
-          $content = Get-Content $_.FullName -Raw
-          if ($content -match 'outcome="Failed"') {
-            $_.Name
+        $failedTests = @()
+        Get-ChildItem -Path ./TestResults -Filter "*.trx" -Recurse | ForEach-Object {
+          try {
+            $content = Get-Content -LiteralPath $_.FullName -Raw -ErrorAction Stop
+            if ($content -match 'outcome="Failed"') {
+              $failedTests += $_.Name
+              Write-Host "Found failed tests in: $($_.Name)"
+            }
+          }
+          catch {
+            Write-Host "Warning: Could not read file $($_.Name): $_"
           }
         }
 
-        if ($failedTests) {
+        if ($failedTests.Count -gt 0) {
           Write-Host "❌ Quality Gate FAILED: One or more tests failed"
           Write-Host "Failed test files: $($failedTests -join ', ')"
           exit 1
