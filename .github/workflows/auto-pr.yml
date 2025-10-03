@@ -145,8 +145,7 @@ jobs:
           --title "${{ steps.pr-content.outputs.title }}" \
           --body-file pr_description.md \
           --head "${{ steps.workflow-details.outputs.branch }}" \
-          --base main \
-          --label "${{ steps.pr-type.outputs.labels }}"
+          --base main
 
         echo "✅ Pull request created successfully!"
       env:
