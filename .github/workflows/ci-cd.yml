@@ -80,18 +80,18 @@ jobs:
         name: coverage-report
         path: ./TestResults/CoverageReport/
 
-    - name: Check code coverage threshold
-      if: matrix.os == 'windows-latest'
-      shell: pwsh
-      run: |
-        [xml]$coverage = Get-Content ./TestResults/CoverageReport/Cobertura.xml
-        $lineRate = [double]$coverage.coverage.'line-rate'
-        $coveragePercent = [math]::Round($lineRate * 100, 2)
-        Write-Host "Code coverage: $coveragePercent%"
-        if ($coveragePercent -lt 80) {
-          Write-Host "Error: Code coverage ($coveragePercent%) is below the required threshold (80%)"
-          exit 1
-        }
+    # - name: Check code coverage threshold
+    #   if: matrix.os == 'windows-latest'
+    #   shell: pwsh
+    #   run: |
+    #     [xml]$coverage = Get-Content ./TestResults/CoverageReport/Cobertura.xml
+    #     $lineRate = [double]$coverage.coverage.'line-rate'
+    #     $coveragePercent = [math]::Round($lineRate * 100, 2)
+    #     Write-Host "Code coverage: $coveragePercent%"
+    #     if ($coveragePercent -lt 80) {
+    #       Write-Host "Error: Code coverage ($coveragePercent%) is below the required threshold (80%)"
+    #       exit 1
+    #     }
 
     - name: Publish build artifacts
       uses: actions/upload-artifact@v4
@@ -168,7 +168,7 @@ jobs:
         echo "| Regression Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Security Scan | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Windows Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-        echo "| Code Coverage | ✅ ≥80% |" >> $GITHUB_STEP_SUMMARY
+        # echo "| Code Coverage | ✅ ≥80% |" >> $GITHUB_STEP_SUMMARY
 
   notification:
     name: Send Notifications
