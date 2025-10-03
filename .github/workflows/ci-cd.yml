@@ -82,14 +82,16 @@ jobs:
 
     - name: Check code coverage threshold
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
-        coverage=$(grep -oP 'line-rate="\K[^"]*' ./TestResults/CoverageReport/Cobertura.xml | head -1)
-        coverage_percent=$(echo "$coverage * 100" | bc -l | cut -d. -f1)
-        echo "Code coverage: $coverage_percent%"
-        if [ "$coverage_percent" -lt 80 ]; then
-          echo "Error: Code coverage ($coverage_percent%) is below the required threshold (80%)"
+        [xml]$coverage = Get-Content ./TestResults/CoverageReport/Cobertura.xml
+        $lineRate = [double]$coverage.coverage.'line-rate'
+        $coveragePercent = [math]::Round($lineRate * 100, 2)
+        Write-Host "Code coverage: $coveragePercent%"
+        if ($coveragePercent -lt 80) {
+          Write-Host "Error: Code coverage ($coveragePercent%) is below the required threshold (80%)"
           exit 1
-        fi
+        }
 
     - name: Publish build artifacts
       uses: actions/upload-artifact@v4
@@ -170,7 +172,7 @@ jobs:
 
   notification:
     name: Send Notifications
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: [quality-gate]
     if: always()
 
