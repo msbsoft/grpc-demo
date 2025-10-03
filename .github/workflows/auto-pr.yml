@@ -13,6 +13,7 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  actions: read
 
 jobs:
   auto-pr:
@@ -45,7 +46,7 @@ jobs:
           echo "pr_exists=false" >> $GITHUB_OUTPUT
         fi
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Determine PR type and title prefix
       id: pr-type
@@ -136,16 +137,18 @@ jobs:
     - name: Create Pull Request
       if: steps.check-pr.outputs.pr_exists == 'false'
       run: |
-        gh pr create \
-          --title "${{ steps.pr-content.outputs.title }}" \
-          --body-file pr_description.md \
-          --head "${{ steps.workflow-details.outputs.branch }}" \
-          --base main \
-          --no-maintainer-edit
-
-        echo "✅ Pull request created successfully!"
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        echo "🚫 Auto-PR creation is disabled in repository settings"
+        echo "Please manually create a pull request from branch: ${{ steps.workflow-details.outputs.branch }}"
+        echo "Suggested title: ${{ steps.pr-content.outputs.title }}"
+        echo ""
+        echo "To enable auto-PR creation:"
+        echo "1. Go to repository Settings > Actions > General"
+        echo "2. Enable 'Allow GitHub Actions to create and approve pull requests'"
+        echo ""
+        echo "PR would have been created with:"
+        echo "  Branch: ${{ steps.workflow-details.outputs.branch }}"
+        echo "  Base: main"
+        echo "  Title: ${{ steps.pr-content.outputs.title }}"
 
     - name: Update existing Pull Request
       if: steps.check-pr.outputs.pr_exists == 'true'
@@ -170,7 +173,7 @@ jobs:
 
         echo "✅ Existing pull request updated!"
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Auto-assign reviewers
       if: steps.check-pr.outputs.pr_exists == 'false'
@@ -184,7 +187,7 @@ jobs:
         echo "PR Number: $pr_number"
         echo "Reviewers can be assigned manually or configure auto-assignment rules"
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Add status comment
       run: |
@@ -203,4 +206,4 @@ jobs:
         echo "- **Type:** ${{ steps.pr-type.outputs.type }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Quality Gates:** ✅ All Passed" >> $GITHUB_STEP_SUMMARY
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
