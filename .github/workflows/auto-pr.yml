@@ -47,7 +47,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Determine PR type and labels
+    - name: Determine PR type and title prefix
       id: pr-type
       run: |
         branch="${{ steps.workflow-details.outputs.branch }}"
@@ -55,23 +55,18 @@ jobs:
         # Determine PR type based on branch name
         if [[ $branch == feature/* ]]; then
           echo "type=feature" >> $GITHUB_OUTPUT
-          echo "labels=enhancement,feature" >> $GITHUB_OUTPUT
           echo "title_prefix=✨ Feature:" >> $GITHUB_OUTPUT
         elif [[ $branch == bugfix/* ]]; then
           echo "type=bugfix" >> $GITHUB_OUTPUT
-          echo "labels=bug,bugfix" >> $GITHUB_OUTPUT
           echo "title_prefix=🐛 Bugfix:" >> $GITHUB_OUTPUT
         elif [[ $branch == hotfix/* ]]; then
           echo "type=hotfix" >> $GITHUB_OUTPUT
-          echo "labels=bug,hotfix,priority-high" >> $GITHUB_OUTPUT
           echo "title_prefix=🚨 Hotfix:" >> $GITHUB_OUTPUT
         elif [[ $branch == develop ]]; then
           echo "type=development" >> $GITHUB_OUTPUT
-          echo "labels=development" >> $GITHUB_OUTPUT
           echo "title_prefix=🔄 Development:" >> $GITHUB_OUTPUT
         else
           echo "type=general" >> $GITHUB_OUTPUT
-          echo "labels=general" >> $GITHUB_OUTPUT
           echo "title_prefix=🔧 Update:" >> $GITHUB_OUTPUT
         fi
 
